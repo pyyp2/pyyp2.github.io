@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css">
+    <script src='https://d3js.org/d3.v5.min.js'></script>
+    <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+
+  </head>
+    
+  <body onload='init()'>
+    <h1 style="text-align:center">Narrative Visualization Project</h1>
+    
+    <div class="tab">
+      <button onclick="window.location.href = 'index.html';">1. Cases</button>
+      <button onclick="window.location.href = 'scene2.html';">2. Population</button>
+      <button onclick="window.location.href = 'scene3.html';">3. Case/100K people</button>
+    </div>
+
+    <svg style="display: block; margin-left: auto; margin-right: auto; width: 800px;" width=800 height=600>
+    </svg>
+    
+  </body>
+  <script>
+    async function init() {
+      
+      const svg = d3.select('svg');
+      // var x = d3.scaleLog()
+      //           .domain([10,150]).range([0,500]).base(2)
+      // var y = d3.scaleLog()
+      //           .domain([10,150]).range([500,0]).base(2)
+      const data = await d3.csv("covid.csv");
+      
+
+      const width = 800
+      const height =600;
+      const xValue = d => d['VaccineRate'];
+      const yValue = d => d.Country;
+      const margin = { top: 50, right: 50, left: 180 };
+      const tableWidth = width - margin.left - margin.right;
+      const tableHeight = height - 2* margin.top;
+
+      const xScale = d3.scaleLinear()
+      .domain([0, d3.max(data, xValue)])
+      .range([0, tableWidth]);
+
+     const yScale = d3.scaleBand()
+      .domain(data.map(yValue))
+      .range([0, tableHeight])
+      .padding(1.5);
+    
+    const g = svg.append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    const xAxisTickFormat = n=>
+      d3.format('.3f')(n);
+    
+    const xAxis = d3.axisBottom(xScale)
+      .tickFormat(xAxisTickFormat)
+      .tickSize(8);
+    
+      
+    g.append('g')
+      .call(d3.axisLeft(yScale))
+ 
+    const xAxisG = g.append('g').call(xAxis)
+      .attr('transform', `translate(0,${tableHeight})`);
+    
+    g.selectAll('rect').data(data)
+      .enter().append('rect')
+        .attr('y', d => yScale(yValue(d)))
+        .attr('width', d => xScale(xValue(d)))
+        .attr('height',30);
+
+      const annotations = [
+    {
+      note: {
+        label: "Pennsylvania has high vaccinate rate, so does California and NewYork.",
+        title: "Vaccinate rates vs cases"
+      },
+      x: 250,
+      y: 10,
+      dy: 10,
+      dx: 100,
+      wrap: 100,
+      color: ["#cc0000"],
+      padding : 50
+    }
+  ]
+      
+      // d3.select("svg")
+      //   .append("g")
+      //   .call(d3.annotation().annotations(annotations))
+      
+        svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -250)
+        .attr("y", 0)
+        .attr("dy", "0.75em")
+        .attr("transform", "rotate(-90)")
+        .text("States Name");
+
+        svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", 500)
+        .attr("y", height-5)
+        .text("Fully Vaccinated rate");
+
+  };
+    
+  </script>
+</html>
